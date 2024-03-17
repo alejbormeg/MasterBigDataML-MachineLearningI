@@ -287,6 +287,7 @@ sfs = SFS(estimator=logistic_regression,
 # Entrenamos el modelo con los datos preprocesados
 sfs.fit(X_train_preprocessed, y_train)
 ```
+Con este método realizamos la selección de variables para el entrenamiento del modelo.
 
 ### Búsqueda en Malla para Optimización de Hiperparámetros:
 
@@ -308,21 +309,21 @@ Dónde:
 
 * **'solver'**: Especifica el algoritmo a usar en el problema de optimización. Cada solucionador tiene sus propias características y es adecuado para tipos específicos de datos:
 
-    'newton-cg', 'lbfgs', 'sag' y 'saga' son buenos para datasets grandes o cuando se requiere regularización L2, aunque los exploraremos igualmente.
+    * 'newton-cg', 'lbfgs', 'sag' y 'saga' son buenos para datasets grandes o cuando se requiere regularización L2, aunque los exploraremos igualmente.
 
-    'liblinear' es una buena elección para datasets pequeños y soporta la regularización L1.
+    * 'liblinear' es una buena elección para datasets pequeños y soporta la regularización L1.
 
-    'saga' también soporta la regularización "elasticnet" y es la única opción para este tipo de regularización.
+    * 'saga' también soporta la regularización "elasticnet" y es la única opción para este tipo de regularización.
 
 * **'penalty'**: Se refiere al tipo de penalización o regularización a aplicar. La regularización ayuda a prevenir el sobreajuste y mejora la generalización del modelo. Las opciones son:
-        'l2' es la penalización estándar que se aplica por defecto.
-        'l1' es útil para generar modelos más simples o cuando se sospecha que algunas características pueden ser irrelevantes.
-        'elasticnet' es una combinación de L1 y L2, proporcionando un equilibrio entre generar un modelo simple (L1) y mantener la regularización de modelos más complejos (L2).
-        'none' indica que no se aplica ninguna regularización.
+    * 'l2' es la penalización estándar que se aplica por defecto.
+    * 'l1' es útil para generar modelos más simples o cuando se sospecha que algunas características pueden ser irrelevantes.
+    * 'elasticnet' es una combinación de L1 y L2, proporcionando un equilibrio entre generar un modelo simple (L1) y mantener la regularización de modelos más complejos (L2).
+    * 'none' indica que no se aplica ninguna regularización.
 
 * **'class_weight'**: Este parámetro se usa para manejar desequilibrios en las clases. Al ajustar este parámetro, se puede influir en la importancia que el modelo da a cada clase durante el entrenamiento:
-        None significa que todas las clases tienen el mismo peso.
-        'balanced' ajusta automáticamente los pesos inversamente proporcionales a las frecuencias de clase en los datos de entrada, lo que puede ser útil para datasets desequilibrados.
+    * None significa que todas las clases tienen el mismo peso.
+    * 'balanced' ajusta automáticamente los pesos inversamente proporcionales a las frecuencias de clase en los datos de entrada, lo que puede ser útil para datasets desequilibrados.
 
 * **'max_iter'**: Especifica el número máximo de iteraciones tomadas para que los solucionadores converjan a una solución. Un número más alto de iteraciones permite más tiempo para que el modelo encuentre una solución óptima, pero también aumenta el tiempo de computación. Se exploran varios valores para asegurar que el solucionador converge adecuadamente para diferentes complejidades de modelos.
 
@@ -341,7 +342,39 @@ La matriz de confusión obtenida es la siguiente:
 
 ### Mejor Red Neuronal Basada en Regresión Logística
 
-(Descripción de cómo se encontró la mejor red neuronal a partir de las variables de la mejor regresión logística, incluyendo detalles sobre la justificación de las parametrizaciones y los parámetros escogidos).
+Para construir la mejor red neuronal basada en las características seleccionadas por el modelo de regresión logística, utilizamos un enfoque sistemático para explorar una variedad de configuraciones de red neuronal. Este proceso se llevó a cabo mediante la implementación de *MLPClassifier* de Scikit-learn, junto con *GridSearchCV* para una búsqueda exhaustiva de hiperparámetros óptimos, garantizando así la selección de la configuración más adecuada para nuestro conjunto de datos.
+
+La elección de características se basó en las seleccionadas por SequentialFeatureSelector, que identificó las variables más relevantes de acuerdo con su impacto en la precisión de la regresión logística. Estas características se utilizaron como entrada para entrenar la red neuronal, asegurando que el modelo se centrara solo en los predictores más significativos.
+
+El param_grid_nn definido para GridSearchCV incluyó una gama de opciones para la arquitectura de la red y sus parámetros:
+
+* **'hidden_layer_sizes'**: Exploramos varias configuraciones de capas ocultas, desde una sola capa de 50 o 100 neuronas hasta dos capas de 50 o 100 neuronas cada una. Esta variedad permite evaluar cómo la profundidad y la complejidad de la red afectan su rendimiento.
+
+* **'activation'**: Se probó con funciones de activación 'tanh' y 'relu', para determinar cuál facilita mejor la convergencia y la capacidad de generalización del modelo.
+
+* **'solver'**: Incluimos 'sgd' para el descenso de gradiente estocástico y 'adam', un optimizador basado en gradientes estocásticos más sofisticado, para identificar el algoritmo de optimización más efectivo.
+
+* **'alpha'**: Se varió el término de regularización para prevenir el sobreajuste, evaluando desde una regularización fuerte a una más ligera.
+
+* **'learning_rate'**: Se consideraron estrategias 'constant' y 'adaptive', esta última ajusta la tasa de aprendizaje a lo largo del entrenamiento para mejorar la eficiencia y la convergencia.
+
+Tras el proceso de entrenamiento y validación mediante GridSearchCV, el modelo resultante alcanzó una precisión de 0.9694, un indicador de su excelente capacidad predictiva. Los mejores parámetros identificados para la red neuronal fueron:
+
+* Activación: 'tanh', que sugiere que esta función de activación funciona bien con nuestro conjunto de datos, posiblemente ayudando a evitar problemas de gradientes que desaparecen en comparación con 'relu' en este contexto específico.
+
+* Regularización alpha: 0.001, proporcionando un balance óptimo entre aprendizaje y prevención del sobreajuste.
+
+* Tamaño de las capas ocultas: (50, 50), lo que indica que una red de dos capas con 50 neuronas cada una es suficiente para capturar la complejidad de nuestros datos sin incurrir en sobreajuste.
+
+* Tasa de aprendizaje: 'constant', demostrando que mantener una tasa de aprendizaje constante a lo largo del entrenamiento es efectivo para este modelo.
+
+* Solucionador: 'adam', confirmando que este optimizador es adecuado para nuestros datos, probablemente debido a su eficiencia en conjuntos de datos relativamente pequeños y su capacidad para manejar bien los mínimos locales.
+
+Este enfoque metodológico y la selección cuidadosa de hiperparámetros han permitido desarrollar un modelo de red neuronal robusto y preciso, basado en los predictores clave identificados a través de la regresión logística, para predecir la obesidad en individuos.
+
+La matriz de confusión obtenida es la siguiente:
+
+![](./img/confusion_matrix_cnn_1.png)
 
 ## Selección de Variables y Mejor Red Neuronal en Términos de AUC
 
