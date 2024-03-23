@@ -376,31 +376,355 @@ La matriz de confusión obtenida es la siguiente:
 
 ![](./img/confusion_matrix_cnn_1.png)
 
-## Selección de Variables y Mejor Red Neuronal en Términos de AUC
+## Selección de Variables (Select K=4 Best) y Mejor Red Neuronal en Términos de AUC
 
 ### Justificación de Parametrizaciones
 
-(Descripción del proceso de selección de variables con k=4 y cómo se encontró el mejor modelo de red neuronal en términos de AUC, incluyendo las parametrizaciones probadas y los parámetros escogidos).
+En nuestro proceso de modelado, nos enfocamos en optimizar tanto la selección de variables como la configuración de nuestra red neuronal para maximizar el Área Bajo la Curva ROC (AUC), un indicador clave de la capacidad del modelo para distinguir entre clases en problemas de clasificación.
+Selección de Variables
+
+Para la selección de variables, utilizamos SelectKBest con el criterio f_classif, como se muestra en el fragmento de código a continuación:
+
+```py
+from sklearn.feature_selection import SelectKBest, f_classif
+
+# Definir el selector de características con k=4
+selector = SelectKBest(f_classif, k=4)
+```
+Esta técnica evalúa la importancia de cada característica mediante pruebas estadísticas ANOVA, seleccionando las 4 más relevantes. La elección de k=4 se basó en análisis preliminares que sugerían una combinación óptima de características para nuestro modelo.
+Optimización de la Red Neuronal
+
+La red neuronal se configuró y optimizó usando MLPClassifier y GridSearchCV para explorar un amplio espacio de parámetros:
+
+```py
+from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import make_scorer, roc_auc_score
+from sklearn.pipeline import Pipeline
+
+mlp = MLPClassifier(max_iter=1000)
+param_grid = {
+    'mlp__hidden_layer_sizes': [(10,), (50,), (100,)],
+    'mlp__activation': ['tanh', 'relu'],
+    'mlp__solver': ['sgd', 'adam'],
+    'mlp__alpha': [0.0001, 0.001, 0.01],
+    'mlp__learning_rate_init': [0.001, 0.01, 0.1],
+}
+
+auc_scorer = make_scorer(roc_auc_score, greater_is_better=True, needs_proba=True)
+
+pipeline = Pipeline([
+    ('selector', selector),
+    ('mlp', mlp)
+])
+
+grid_search = GridSearchCV(pipeline, param_grid, cv=5, scoring=auc_scorer)
+```
+
+Estos fragmentos de código representan la configuración completa del modelo y la búsqueda de parámetros, incluyendo la selección de variables y la optimización de hiperparámetros de la red neuronal.
+
+### Resultados
+Las 4 mejores características seleccionadas fueron: 'num__Weight', 'cat__family_history_with_overweight_no', 'cat__family_history_with_overweight_yes', y 'cat__CAEC_Sometimes'. Estas características reflejan un equilibrio entre variables numéricas y categóricas, resaltando la importancia de aspectos tanto físicos como de comportamiento y antecedentes familiares en la predicción de nuestro objetivo.
+
+El mejor modelo de red neuronal se caracterizó por usar la función de activación relu, un término de regularización alpha de 0.0001, un tamaño de capa oculta de (10,), una tasa de aprendizaje inicial de 0.01, y el algoritmo de optimización adam. Esta configuración resultó en un AUC de 0.96 en el conjunto de prueba, demostrando una excelente capacidad de discriminación.
+
+El gráfico obtenido es el siguiente:
+
+![](./img/area_bajo_curva_roc_nn.png)
+
+### Conclusión
+
+La combinación de una cuidadosa selección de variables y una búsqueda exhaustiva de los mejores parámetros para la red neuronal nos permitió desarrollar un modelo altamente eficaz para nuestro problema de clasificación. La metodología adoptada asegura que nuestro modelo no solo es potente en términos de precisión predictiva, sino también robusto y generalizable a nuevos datos.
 
 ## Comparación de Modelos
+A continuación omparamos los dos mejores modelos de los apartados anteriores. Estos modelos se han evaluado en base a su precisión y la métrica AUC, ambas fundamentales para la evaluación del rendimiento en la tarea de clasificación binaria "presenta obsesidad", "No presenta obsesidad".
 
-(Comparación de los modelos candidatos a ganadores de las secciones 1) y 2), evaluando sus rendimientos y características distintivas).
+### Resultados de la Evaluación
+
+* **Modelo del Apartado 1:** Este modelo, desarrollado tras un proceso detallado de regresión logística, alcanzó una precisión de 0.97 y un AUC de 0.99. Estas cifras destacan el modelo como altamente efectivo, no solo en la correcta clasificación de los casos sino también en su excepcional capacidad para discriminar entre clases positivas y negativas con una gran precisión.
+
+* **Modelo del Apartado 2:** Construido tras la selección de variables con SelectKBest (tomando únicamente 4 variables), este modelo logró una precisión de 0.88 y un AUC de 0.96. A pesar de que presenta buenos resultados, se observa que su rendimiento es algo inferior al modelo del Apartado 1, tanto en precisión como en AUC.
+
+Comparamos ahora las matrices de confusión de ambos modelos:
+
+![](./img/comparacion_matrices_modelo_1_2.png)
+
+Vemos como la tasa de Verdaderos negativos es elevada en ambos casos y muy similar, por otro lado los falsos negativos son muy reducidos. No obstante, la tasa de verdaderos positivos es mayor en el primer modelo y los falsos positivos son mayores en el segundo modelo. Esto confirma el análisis anterior. 
+
+![](./img/curvas_roc_modelo_1_2.png)
+
+Del mismo modo, se aprecia mejor curva para el modelo del apartado 1, pues el área bajo la curva es prácticamente 1.
+
+### Reflexión sobre las Características y Rendimientos
+
+* **Eficiencia y Complejidad:** El modelo del Apartado 1 ilustra cómo una estrategia meticulosa en la selección de variables (con el algoritmo *stepwise* en nuestro caso) y la optimización de parámetros puede resultar en un modelo altamente eficaz sin recurrir a estructuras excesivamente complejas, de hecho es un modelo muy simple para la dimensionalidad del problema. Esto resalta la importancia de entender profundamente los datos y aplicar técnicas de modelado adecuadas.
+
+* **Importancia de la Selección de Variables:** La selección de variables en el modelo del Apartado 2, aunque no logró superar al modelo del Apartado 1, sigue siendo una táctica valiosa que contribuye significativamente a la construcción de modelos predictivos robustos. Este enfoque puede ser especialmente útil en escenarios donde la interpretabilidad del modelo es una prioridad. Además, vemos como la penalización con respecto al accuracy del primer modelo es de solo un 10%, pese a usar únicamente 4 variables.
+
+### Conclusión
+
+Teniendo en cuenta los resultados revisados, reafirmamos que el modelo del Apartado 1 supera al modelo del Apartado 2 en términos de precisión y AUC. Este modelo no solamente proporciona una clasificación más precisa sino que también demuestra una habilidad sobresaliente para diferenciar efectivamente entre las clases de obesidad y no obesidad. Aunque el modelo del Apartado 1 se presenta como la opción preferida basada en los resultados cuantitativos, es crucial considerar aspectos adicionales como la interpretabilidad y la complejidad del modelo al tomar decisiones de implementación práctica.
+
 
 ## Mejor Búsqueda Paramétrica para Árboles de Decisión
 
-(Descripción de la búsqueda paramétrica realizada para encontrar el mejor árbol de decisión, incluyendo los cuatro métodos de validación de la bondad de la clasificación utilizados).
+Para lograr la mejor búsqueda paramétrica y encontrar el árbol de decisión óptimo, se implementaron cuatro métodos de validación de la bondad de la clasificación: precisión (accuracy), sensibilidad (recall), puntaje F1 (f1_score) y el área bajo la curva ROC (AUC). Utilizamos GridSearchCV para explorar exhaustivamente un conjunto predefinido de parámetros del DecisionTreeClassifier, evaluando cada combinación de parámetros con respecto a las cuatro métricas mencionadas.
+
+### Proceso de Búsqueda Paramétrica
+
+Se definió un espacio de búsqueda de parámetros para el DecisionTreeClassifier, considerando el criterio de división (gini o entropy), la profundidad máxima del árbol (max_depth), el mínimo número de muestras requerido para dividir un nodo interno (min_samples_split) y el mínimo número de muestras requeridas para estar en un nodo hoja (min_samples_leaf). La configuración de GridSearchCV incluyó estos parámetros y utilizó la validación cruzada de 5-folds para asegurar una evaluación robusta de cada modelo. Usamos el siguiente código para ello:
+
+```py
+# Definimos el modelo base
+tree = DecisionTreeClassifier()
+
+# Definimos el espacio de búsqueda de los parámetros
+param_grid = {
+    'criterion': ['gini', 'entropy'],
+    'max_depth': [None, 10, 20, 30],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4],
+}
+
+# Definimos las métricas de evaluación personalizadas
+scoring = {
+    'accuracy': make_scorer(accuracy_score),
+    'recall': make_scorer(recall_score, average='macro'),
+    'f1_score': make_scorer(f1_score, average='macro'),
+    # Asegúrate de que tu problema sea de clasificación binaria para usar roc_auc
+    'auc': 'roc_auc_ovr',
+}
+
+# Configuramos GridSearchCV
+grid_search = GridSearchCV(estimator=tree, param_grid=param_grid, scoring=scoring, refit='accuracy', cv=5, verbose=1)
+
+# Ejecutamos la búsqueda
+grid_search.fit(X_train_preprocessed, y_train)
+
+# Mostramos los mejores parámetros y la mejor puntuación
+print("Mejores parámetros:", grid_search.best_params_)
+print("Mejor puntuación según accuracy:", grid_search.best_score_)
+
+# Para ver los resultados para las demás métricas, necesitas acceder a cv_results_
+print("Puntuaciones para todas las métricas:", grid_search.cv_results_)
+```
+
+
+### Métricas de Evaluación
+
+Se emplearon cuatro métricas de evaluación personalizadas: precisión, sensibilidad, puntaje F1 y AUC. Estas métricas proporcionan una visión comprensiva del rendimiento del modelo, evaluando no solo la exactitud de las clasificaciones (precisión), sino también cómo el modelo identifica correctamente las clases positivas (sensibilidad), la balanza entre precisión y sensibilidad (puntaje F1) y su capacidad para distinguir entre clases (AUC). Usamoes el siguiente código:
+
+```py
+# Reentrenamos el mejor modelo sobre todo el conjunto de datos
+best_tree = DecisionTreeClassifier(**grid_search.best_params_)
+best_tree.fit(X_train_preprocessed, y_train)
+
+# Predicciones con el mejor modelo
+y_pred = best_tree.predict(X_test_preprocessed)
+
+# Cálculo manual de cada métrica
+accuracy = accuracy_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred, average='macro')
+f1 = f1_score(y_test, y_pred, average='macro')
+# Para AUC, necesitamos predicciones de probabilidad y considerar cada clase binariamente
+y_prob = best_tree.predict_proba(X_test_preprocessed)
+if y_prob.shape[1] == 2:  # Problema binario
+    auc = roc_auc_score(y_test, y_prob[:, 1])
+else:  # Problema multiclase
+    auc = roc_auc_score(y_test, y_prob, multi_class='ovr')
+
+print("Resultados del mejor modelo:")
+print(f"Accuracy: {accuracy}")
+print(f"Recall: {recall}")
+print(f"F1 Score: {f1}")
+print(f"AUC: {auc}")
+
+# Para obtener un informe más detallado que incluya precision además de recall y F1-score
+print("\nInforme de clasificación:")
+print(classification_report(y_test, y_pred))
+```
+
+### Resultados
+
+El proceso de búsqueda identificó que el mejor modelo se logra utilizando el criterio entropy, sin limitar la profundidad máxima (max_depth=None), con un mínimo de 4 muestras por hoja (min_samples_leaf=4) y requiriendo al menos 2 muestras para dividir un nodo (min_samples_split=2). Este modelo alcanzó la mejor puntuación según la precisión con un valor de 0.9757880124122164.
+Evaluación del Mejor Modelo
+
+El modelo óptimo fue evaluado en un conjunto de prueba independiente, revelando una precisión de 0.9744897959183674, un recall macro de 0.9738002730232069, un puntaje F1 macro de 0.974247799237945, y un AUC de 0.9776330988133992. Estos resultados demuestran que el modelo no solo es preciso en general, sino que también mantiene un equilibrio adecuado entre la sensibilidad y la especificidad para las clases involucradas, además de poseer una excelente capacidad de discriminación entre clases.
+Conclusión
+
+La búsqueda paramétrica detallada utilizando GridSearchCV y la evaluación basada en múltiples métricas permitieron identificar un árbol de decisión altamente efectivo. Este modelo equilibra bien entre evitar el sobreajuste y mantener una alta capacidad de generalización, destacándose por su precisión, sensibilidad, puntaje F1 y AUC en la clasificación. La implementación meticulosa y la evaluación rigurosa aseguran que el modelo seleccionado es adecuado para aplicaciones prácticas, proporcionando decisiones de clasificación confiables y valiosas para la toma de decisiones basada en datos.
+
+### Importancia de las variables
+
+Representamos la importancia de cada variable con el siguiente código:
+
+```py
+# Asumiendo que best_tree es tu modelo entrenado
+df_importancia_c = pd.DataFrame({
+    'Variable': transformed_feature_names,  # Usa tu lista de nombres de características aquí
+    'Importancia': best_tree.feature_importances_
+}).sort_values(by='Importancia', ascending=False)
+
+# Crear un gráfico de barras
+plt.figure(figsize=(10, 6))  # Ajustar el tamaño de la figura
+plt.bar(df_importancia_c['Variable'], df_importancia_c['Importancia'], color='skyblue')
+plt.xlabel('Variable')
+plt.ylabel('Importancia')
+plt.title('Importancia de las características')
+plt.xticks(rotation=45, ha='right')
+plt.tight_layout()
+
+# Mostrar el gráfico
+plt.show()
+```
+
+![](./img/importancia_variables_arbol.png)
+
+Podemos ver cómo las dos más importantes son la **altura** y **peso**, como es de esperar, pues son las que determinan principalmente si alguien es obeso o no.
+
 
 ### Representación Gráfica del Árbol Ganador
 
-(Representación gráfica del árbol ganador, incluyendo sus reglas en formato texto).
+![](./img/representación_arbol.png)
 
-### Importancia de las Variables
+Una ventaja de los árboles de decisión son su gran capacidad explicativa a la hora de determinar la etiqueta para cada elemento que procesan. Se detalla a continuación la explicación para comprender el gráfico:
 
-(Gráfica que muestra la importancia de las variables en el árbol ganador).
+* **Nodos Raíz y Nodos Internos**: El nodo superior (nodo raíz) y los nodos intermedios representan las preguntas o "decisiones" basadas en los atributos de los datos. Por ejemplo, el nodo raíz divide los datos en dos ramas basadas en si num_Weight <= 0.449. Esto significa que el primer criterio que el árbol utiliza para dividir el conjunto de datos es el peso (normalizado o estandarizado), y 0.449 es el valor de umbral.
+
+* **Ramas**: Cada división o "pregunta" da lugar a dos ramas, llevando a otro nodo (que puede ser un nodo interno o una hoja). La rama izquierda siempre representa una respuesta "Sí" a la pregunta (en este caso, los pesos menores o iguales a 0.449), y la rama derecha representa una respuesta "No".
+
+* **Nodos Hoja**: Las hojas finales del árbol, donde no hay más divisiones, representan las predicciones finales del árbol. Cada nodo hoja muestra la clase que se predice para las observaciones que llegan a ese punto. Además, muestra la entropía de ese nodo, la cantidad de muestras que caen en ese nodo, y la distribución de las clases de esas muestras. Por ejemplo, en uno de los nodos hoja del lado izquierdo, la clase es 'No', lo que indica que las muestras que llegan a este punto son clasificadas como 'No' por el modelo. La entropía de 0 implica que todas las muestras en ese nodo son de una sola clase, haciendo que este nodo sea perfectamente puro.
+
+* **Información en los Nodos**: Dentro de cada nodo se incluye la siguiente información:
+    * *Condición de división:* como num_Weight <= 0.357.
+    * *Entropía:* una medida de la impureza del nodo. Una entropía de 0 significa que todas las muestras en ese nodo pertenecen a una sola clase.
+    * *Número de muestras:* cuántas muestras del conjunto de entrenamiento caen en ese nodo.
+    * *Distribución de la clase:* muestra en formato [cantidad de clase 'No', cantidad de clase 'Yes'] cuántas muestras pertenecen a cada clase.
+    * *Clase dominante:* la etiqueta de clase que se asigna a las muestras en ese nodo.
+
+* **División del Árbol**: El árbol se divide para aumentar la pureza de los nodos resultantes (es decir, tratar de obtener nodos donde las muestras pertenezcan a una sola clase), lo que generalmente mejora la capacidad del modelo para hacer predicciones precisas.
+
+### Representación de las reglas en modo texto
+Podemos visualizar las reglas del árbol en modo texto con el siguiente código:
+
+```py
+tree_rules = export_text(best_tree, feature_names=transformed_feature_names)
+print(tree_rules)
+```
+
+```bash
+|--- num__Weight <= 0.45
+|   |--- num__Weight <= 0.30
+|   |   |--- class: 0
+|   |--- num__Weight >  0.30
+|   |   |--- num__Height <= 0.34
+|   |   |   |--- num__TUE <= 0.43
+|   |   |   |   |--- class: 1
+|   |   |   |--- num__TUE >  0.43
+|   |   |   |   |--- num__Weight <= 0.35
+|   |   |   |   |   |--- class: 0
+|   |   |   |   |--- num__Weight >  0.35
+|   |   |   |   |   |--- class: 1
+|   |   |--- num__Height >  0.34
+|   |   |   |--- num__Weight <= 0.42
+|   |   |   |   |--- num__Weight <= 0.36
+|   |   |   |   |   |--- class: 0
+|   |   |   |   |--- num__Weight >  0.36
+|   |   |   |   |   |--- num__Height <= 0.39
+|   |   |   |   |   |   |--- class: 1
+|   |   |   |   |   |--- num__Height >  0.39
+|   |   |   |   |   |   |--- num__Height <= 0.52
+|   |   |   |   |   |   |   |--- num__FCVC <= 0.99
+|   |   |   |   |   |   |   |   |--- num__Height <= 0.48
+|   |   |   |   |   |   |   |   |   |--- class: 0
+|   |   |   |   |   |   |   |   |--- num__Height >  0.48
+...
+|   |   |   |--- class: 0
+|   |--- num__Weight >  0.51
+|   |   |--- class: 1
+```
 
 ## Mejor Modelo de Bagging y Random Forest
 
-(Descripción de la búsqueda paramétrica para encontrar el mejor modelo de Bagging y Random Forest según Accuracy, incluyendo justificaciones de las parametrizaciones y los parámetros escogidos).
+Mejor Modelo de Bagging
+Parametrización del Modelo Final
+
+Para el modelo de Bagging, se eligió un clasificador de ensamble basado en árboles de decisión como estimador base. Se realizó una búsqueda de parámetros utilizando GridSearchCV, con un enfoque en tres parámetros clave:
+
+    n_estimators: Número de árboles en el ensamble.
+    max_samples: Fracción del número total de muestras utilizadas para ajustar cada árbol base.
+    max_features: Fracción del número total de características consideradas para dividir cada nodo.
+
+El siguiente fragmento de código muestra la implementación de la búsqueda de parámetros:
+
+python
+
+# Definición del espacio de parámetros
+param_grid = {
+    'n_estimators': [10, 50, 100],
+    'max_samples': [0.5, 0.75, 1.0],
+    'max_features': [0.5, 0.75, 1.0]
+}
+
+# Configuración y ejecución de GridSearchCV
+grid_search = GridSearchCV(estimator=bagging_cls, param_grid=param_grid, cv=5, scoring='accuracy')
+grid_search.fit(X_train_preprocessed, y_train)
+
+# Resultados
+print(f"Best parameters: {grid_search.best_params_}")
+print(f"Best cross-validation score: {grid_search.best_score_}")
+
+Los resultados del GridSearchCV revelaron que la mejor configuración para el modelo de Bagging incluye 50 estimadores, y un max_samples y max_features del 75%. Esto significa que cada árbol en el ensamble se construye con el 75% de las muestras y características disponibles, ofreciendo así diversidad en el modelo y evitando sobreajuste.
+Rendimiento del Modelo
+
+El modelo final de Bagging fue evaluado en conjuntos de datos de entrenamiento y prueba:
+
+python
+
+# Evaluación en entrenamiento y prueba
+train_accuracy = accuracy_score(y_train, y_train_pred)
+test_accuracy = accuracy_score(y_test, y_test_pred)
+
+print(f"Training accuracy: {train_accuracy}")
+print(f"Test accuracy: {test_accuracy}")
+
+El modelo alcanzó una precisión perfecta en el entrenamiento (100%) y una precisión de 97.45% en el conjunto de prueba. Un informe de clasificación proporcionó detalles adicionales de la precisión, recall y F1-score para cada clase, reflejando un excelente equilibrio entre la detección de clases.
+Mejor Modelo de Random Forest
+Parametrización del Modelo Final
+
+Para el modelo de Random Forest, se utilizó un enfoque similar con GridSearchCV, centrándose en n_estimators, max_features, y max_depth como los parámetros críticos. Aquí está el código relevante para la configuración del RandomForestClassifier:
+
+python
+
+# Definición del espacio de parámetros
+param_grid = {
+    'n_estimators': [50, 100, 150],
+    'max_features': ['sqrt', 0.25, 0.5],
+    'max_depth': [10, 20, None]
+}
+
+# Búsqueda de parámetros con GridSearchCV
+grid_search_rf = GridSearchCV(estimator=rf, param_grid=param_grid, cv=5, scoring='accuracy')
+grid_search_rf.fit(X_train_preprocessed, y_train)
+
+# Resultados
+print("Mejores parámetros:", grid_search_rf.best_params_)
+
+El modelo óptimo de Random Forest se encontró con una profundidad máxima de 10, utilizando el 50% de las características y 50 estimadores. Esto sugiere que un enfoque más restrictivo en la profundidad del árbol ayuda a mejorar la generalización del modelo sin sacrificar precisión.
+Rendimiento del Modelo
+
+El Random Forest se evaluó en los conjuntos de entrenamiento y prueba para verificar la precisión y evitar sobreajuste:
+
+python
+
+# Evaluación en entrenamiento y prueba
+accuracy_train_rf = accuracy_score(y_train, y_train_pred_rf)
+accuracy_test_rf = accuracy_score(y_test, y_test_pred_rf)
+
+print(f"Accuracy en entrenamiento: {accuracy_train_rf}")
+print(f"Accuracy en prueba: {accuracy_test_rf}")
+
+El modelo de Random Forest también mostró una precisión del 100% en el entrenamiento y un 97.45% en la prueba, lo que indica una excelente
 
 ## Mejor Modelo de Gradiente Boosting y XGBoost
 
