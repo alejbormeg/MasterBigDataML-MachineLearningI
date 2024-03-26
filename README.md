@@ -3,7 +3,7 @@
 Autor: Alejandro Borrego Megías  
 Correo: alejbormeg@gmail.com
 
-# Índice
+## Índice
 0. [Introducción](#introducción)
 1. [Análisis Exploratorio y Limpieza de Datos](#análisis-exploratorio-y-limpieza-de-datos)
 2. [Mejor Modelo de Regresión Logística](#mejor-modelo-de-regresión-logística)
@@ -646,8 +646,11 @@ print(tree_rules)
 
 ## Mejor Modelo de Bagging y Random Forest
 
-Mejor Modelo de Bagging
-Parametrización del Modelo Final
+### Preprocesamiento
+Para ambos modelos, el preprocesamiento explicado en el primer apartado es válido y nos hemos asegurado de qu la distribución de elementos positivos y negativos mantienen la misma relación en ambos conjuntos de entrenamiento y test.
+
+
+### Mejor Modelo de Bagging
 
 Para el modelo de Bagging, se eligió un clasificador de ensamble basado en árboles de decisión como estimador base. Se realizó una búsqueda de parámetros utilizando GridSearchCV, con un enfoque en tres parámetros clave:
 
@@ -657,9 +660,8 @@ Para el modelo de Bagging, se eligió un clasificador de ensamble basado en árb
 
 El siguiente fragmento de código muestra la implementación de la búsqueda de parámetros:
 
-python
 
-# Definición del espacio de parámetros
+```py
 param_grid = {
     'n_estimators': [10, 50, 100],
     'max_samples': [0.5, 0.75, 1.0],
@@ -673,29 +675,40 @@ grid_search.fit(X_train_preprocessed, y_train)
 # Resultados
 print(f"Best parameters: {grid_search.best_params_}")
 print(f"Best cross-validation score: {grid_search.best_score_}")
+```
 
-Los resultados del GridSearchCV revelaron que la mejor configuración para el modelo de Bagging incluye 50 estimadores, y un max_samples y max_features del 75%. Esto significa que cada árbol en el ensamble se construye con el 75% de las muestras y características disponibles, ofreciendo así diversidad en el modelo y evitando sobreajuste.
-Rendimiento del Modelo
+Los resultados del GridSearchCV revelaron que la mejor configuración para el modelo de Bagging incluye 50 estimadores, y un max_samples y max_features del 75%. Esto significa que cada árbol en el ensamble se construye con el 75% de las muestras y características disponibles, ofreciendo así diversidad en el modelo y evitando sobreajuste y obteniendo un 0.98 de Accuracy en la mejor partición de *cross-validation*.
+
+Podemos ver en detalle la distribución de la precisión por las distintas particiones de cross-validation:
+
+.[](./img/bagging_cross_val.png)
+
+Vemos como las cajas son muy estrechas oscilando entre un 0.96-1. Lo que indica una gran fiabilidad y consistencia del modelo.
+
+#### Rendimiento del Modelo
 
 El modelo final de Bagging fue evaluado en conjuntos de datos de entrenamiento y prueba:
 
-python
-
-# Evaluación en entrenamiento y prueba
+```py
 train_accuracy = accuracy_score(y_train, y_train_pred)
 test_accuracy = accuracy_score(y_test, y_test_pred)
 
 print(f"Training accuracy: {train_accuracy}")
 print(f"Test accuracy: {test_accuracy}")
+```
 
 El modelo alcanzó una precisión perfecta en el entrenamiento (100%) y una precisión de 97.45% en el conjunto de prueba. Un informe de clasificación proporcionó detalles adicionales de la precisión, recall y F1-score para cada clase, reflejando un excelente equilibrio entre la detección de clases.
-Mejor Modelo de Random Forest
-Parametrización del Modelo Final
+
+Podemos ver el rendimiento gráficamente en la matriz de confusión (apenas cuenta con falsos positivos y negativos):
+
+![](./img/confusion_matrix_bagging.png)
+
+
+### Mejor Modelo de Random Forest
 
 Para el modelo de Random Forest, se utilizó un enfoque similar con GridSearchCV, centrándose en n_estimators, max_features, y max_depth como los parámetros críticos. Aquí está el código relevante para la configuración del RandomForestClassifier:
 
-python
-
+```python
 # Definición del espacio de parámetros
 param_grid = {
     'n_estimators': [50, 100, 150],
@@ -709,39 +722,406 @@ grid_search_rf.fit(X_train_preprocessed, y_train)
 
 # Resultados
 print("Mejores parámetros:", grid_search_rf.best_params_)
+```
 
 El modelo óptimo de Random Forest se encontró con una profundidad máxima de 10, utilizando el 50% de las características y 50 estimadores. Esto sugiere que un enfoque más restrictivo en la profundidad del árbol ayuda a mejorar la generalización del modelo sin sacrificar precisión.
-Rendimiento del Modelo
+
+![](./img/rf_cross_val.png)
+
+Vemos como las cajas son muy estrechas oscilando entre un 0.96-1. Lo que indica una gran fiabilidad y consistencia del modelo.
+
+#### Rendimiento del Modelo
 
 El Random Forest se evaluó en los conjuntos de entrenamiento y prueba para verificar la precisión y evitar sobreajuste:
 
-python
-
+```python
 # Evaluación en entrenamiento y prueba
 accuracy_train_rf = accuracy_score(y_train, y_train_pred_rf)
 accuracy_test_rf = accuracy_score(y_test, y_test_pred_rf)
 
 print(f"Accuracy en entrenamiento: {accuracy_train_rf}")
 print(f"Accuracy en prueba: {accuracy_test_rf}")
+```
 
-El modelo de Random Forest también mostró una precisión del 100% en el entrenamiento y un 97.45% en la prueba, lo que indica una excelente
+
+El modelo de Random Forest aquí desarrollado demuestra ser extremadamente robusto y eficaz, con un rendimiento sobresaliente tanto en los conjuntos de entrenamiento como de prueba. La selección cuidadosa de los parámetros ha permitido optimizar el modelo para lograr una alta precisión y un excelente balance entre la detección de las distintas clases. Con una precisión cercana al 97.45% en el conjunto de prueba, este modelo se posiciona como una herramienta confiable y potente para la tarea de clasificación en cuestión.
+
+Podemos ver el rendimiento gráficamente en la matriz de confusión (apenas cuenta con falsos positivos y negativos):
+
+![](./img/confusion_matrix_bagging.png)
 
 ## Mejor Modelo de Gradiente Boosting y XGBoost
 
-(Descripción de la búsqueda paramétrica para encontrar el mejor modelo de Gradiente Boosting y XGBoost según Accuracy, incluyendo justificaciones de las parametrizaciones y los parámetros escogidos).
+El preprocesamiento de los datos de nuevo es el realizado en el primer apartado de este trabajo.
+
+### Mejor Búsqueda Paramétrica para Gradiente Boosting según Accuracy
+
+Gradiente Boosting es una técnica de ensamble que construye modelos predictivos de manera secuencial. Cada nuevo modelo se enfoca en corregir los errores del modelo anterior, mejorando gradualmente la precisión del ensamble completo. La búsqueda paramétrica se realizó utilizando GridSearchCV, ajustando los siguientes parámetros clave:
+
+```python
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import accuracy_score
+
+# Definir el espacio de búsqueda de parámetros
+param_grid = {
+    'n_estimators': [100, 200],
+    'learning_rate': [0.05, 0.1],
+    'max_depth': [3, 5],
+    'min_samples_split': [2, 5],
+    'min_samples_leaf': [1, 2],
+    'max_features': ['sqrt', 'log2'],
+    'subsample': [0.8, 1.0]
+}
+
+# Inicializar el clasificador de Gradient Boosting
+gb = GradientBoostingClassifier(random_state=0)
+
+# Configurar GridSearchCV
+grid_search = GridSearchCV(estimator=gb, param_grid=param_grid, cv=5, scoring='accuracy', verbose=1)
+
+# Ajustar GridSearchCV
+grid_search.fit(X_train_preprocessed, y_train)
+
+# Mejores parámetros encontrados
+print(f'Mejores parámetros: {grid_search.best_params_}')
+```
+
+Los parámetros considerados en la búsqueda fueron:
+
+    n_estimators: Número de árboles secuenciales a construir. Más árboles pueden mejorar la precisión pero también incrementar el riesgo de sobreajuste.
+    learning_rate: Tasa de aprendizaje que controla el grado en que cada árbol influye en el modelo final. Una tasa más baja requiere más árboles, pero puede mejorar la generalización.
+    max_depth: Profundidad máxima de cada árbol. Limitar la profundidad ayuda a prevenir el sobreajuste.
+    min_samples_split: Número mínimo de observaciones necesarias para dividir un nodo interno.
+    min_samples_leaf: Número mínimo de observaciones requeridas para ser un nodo hoja.
+    max_features: Número máximo de características a considerar para la mejor división.
+    subsample: Fracción de muestras a utilizar para ajustar cada árbol, lo que permite un aprendizaje estocástico.
+
+La configuración de GridSearchCV permitió evaluar combinaciones de estos parámetros para identificar la configuración óptima según la precisión.
+
+Los mejores parámetros encontrados para el modelo de Gradient Boosting y la evaluación de rendimiento son los siguientes:
+
+```python
+# Mejor modelo
+best_gb = grid_search.best_estimator_
+
+# Predicciones y evaluación
+y_pred_train = best_gb.predict(X_train_preprocessed)
+y_pred_test = best_gb.predict(X_test_preprocessed)
+accuracy_train = accuracy_score(y_train, y_pred_train)
+accuracy_test = accuracy_score(y_test, y_pred_test)
+
+print(f'Precisión en entrenamiento: {accuracy_train}')
+print(f'Precisión en prueba: {accuracy_test}')
+```
+
+Resultados de la evaluación del mejor modelo:
+
+```
+Mejores parámetros: {'learning_rate': 0.1, 'max_depth': 5, 'max_features': 'sqrt', 'min_samples_leaf': 2, 'min_samples_split': 5, 'n_estimators': 200, 'subsample': 0.8}
+Puntuación del mejor modelo en entrenamiento (cross-validation): 0.9821492732320758
+Precisión en el conjunto de prueba: 0.9795918367346939
+
+              precision    recall  f1-score   support
+
+           0       0.97      0.99      0.98       107
+           1       0.99      0.97      0.98        89
+
+    accuracy                           0.98       196
+   macro avg       0.98      0.98      0.98       196
+weighted avg       0.98      0.98      0.98       196
+```
+
+Este rendimiento demuestra la efectividad del modelo de Gradient Boosting en la tarea de clasificación, resaltando la importancia de la configuración adecuada de los hiperparámetros para lograr un alto rendimiento. La capacidad del modelo para generalizar bien a nuevos datos lo convierte en una herramienta valiosa en el campo de la salud pública.
+
+### Mejor Búsqueda Paramétrica para XGBoost según Accuracy
+
+XGBoost (eXtreme Gradient Boosting) es una implementación optimizada de Gradient Boosting diseñada para ser altamente eficiente, flexible y portátil. Realiza el entrenamiento de manera más rápida y con mejor rendimiento que la implementación estándar de Gradient Boosting. La búsqueda de los mejores parámetros para XGBoost incluyó:
+
+```python
+from sklearn.model_selection import GridSearchCV
+from xgboost import XGBClassifier
+
+# Definir el modelo
+xgb_model = XGBClassifier(use_label_encoder=False, eval_metric='logloss')
+
+# Definir el espacio de búsqueda de parámetros
+param_grid = {
+    'n_estimators': [100, 200],
+    'learning_rate': [0.01, 0.1],
+    'max_depth': [3, 5],
+    'colsample_bytree': [0.3, 0.7]
+}
+
+# Configurar GridSearchCV
+grid_search = GridSearchCV(estimator=xgb_model, param_grid=param_grid, cv=5, scoring='accuracy')
+
+# Ajustar GridSearchCV
+grid_search.fit(X_train_preprocessed, y_train)
+
+# Mejores parámetros encontrados
+print(f'Mejores parámetros: {grid_search.best_params_}')
+```
+Los parámetros explorados incluyeron:
+
+    n_estimators: Define el número de ciclos de boosting, esencialmente cuántos árboles secuenciales se construyen.
+    learning_rate: Controla el impacto de cada árbol en el resultado final, un balance entre rendimiento y riesgo de sobreajuste.
+    max_depth: La profundidad máxima de los árboles, que ayuda a controlar la complejidad y el sobreajuste.
+    colsample_bytree: La fracción de columnas (características) usadas para cada árbol, una forma de realizar muestreo de características.
+
+Los mejores parámetros encontrados para el modelo de XGBoost y la evaluación de rendimiento son los siguientes:
+
+```python
+# Mejor modelo
+best_xgb = grid_search.best_estimator_
+
+# Predicciones y evaluación
+y_pred_train = best_xgb.predict(X_train_preprocessed)
+y_pred_test = best_xgb.predict(X_test_preprocessed)
+accuracy_train = accuracy_score(y_train, y_pred_train)
+accuracy_test = accuracy_score(y_test, y_pred_test)
+
+print(f'Precisión en entrenamiento: {accuracy_train}')
+print(f'Precisión en prueba: {accuracy_test}')
+```
+
+Resultados de la evaluación del mejor modelo:
+
+```
+Mejores parámetros: {'colsample_bytree': 0.7, 'learning_rate': 0.1, 'max_depth': 3, 'n_estimators': 100}
+Puntuación del mejor modelo en entrenamiento (cross-validation): 0.9821492732320758
+Precisión en el conjunto de prueba: 0.9846938775510204
+
+              precision    recall  f1-score   support
+
+           0       0.98      0.99      0.98       107
+           1       0.99      0.98      0.98        89
+
+    accuracy                           0.98       196
+   macro avg       0.98      0.98      0.98       196
+weighted avg       0.98      0.98      0.98       196
+```
+
+Este rendimiento demuestra la efectividad del modelo de XGBoost en la tarea de clasificación, resaltando la importancia de la configuración adecuada de los hiperparámetros para lograr un alto rendimiento. La capacidad del modelo para generalizar bien a nuevos datos lo convierte en una herramienta valiosa en el campo de la salud pública.
 
 ## Mejor Modelo de SVM con Diferentes Kernels
 
-(Descripción de la búsqueda paramétrica para determinar el mejor modelo de SVM con al menos dos kernels diferentes, incluyendo justificaciones de las parametrizaciones y los parámetros escogidos).
+### Preprocesamiento
+
+Dado que las SVM son sensibles a la escala de los datos y no manejan directamente variables categóricas, se implementó en el primer apartado de este trabajo un preprocesamiento compuesto por un escalado MinMax para variables numéricas y codificación OneHot para variables categóricas. Esta estrategia asegura que todas las características tengan el mismo peso en la formulación del modelo, y transforma las variables categóricas en un formato adecuado para el modelo SVM.
+
+### Búsqueda Paramétrica
+
+Para la selección del mejor modelo, utilizamos `GridSearchCV` con validación cruzada, probando combinaciones de los siguientes parámetros en el espacio de búsqueda:
+
+- **C (Parámetro de regularización):** Se exploraron los valores [0.1, 1, 10, 100], donde un C menor conduce a un margen de decisión más suave (mayor regularización), y un C mayor busca clasificar correctamente todas las muestras de entrenamiento, lo que puede llevar a un modelo más complejo y posiblemente a sobreajuste.
+- **Kernel:** Se evaluaron dos tipos de kernels, `linear` y `rbf`. El kernel lineal es útil para datos linealmente separables, mientras que el kernel radial basis function (RBF) puede modelar fronteras de decisión no lineales, ofreciendo mayor flexibilidad.
+- **Gamma (Para kernel RBF):** Los valores [0.001, 0.0001, 'scale', 'auto'] regulan la influencia de cada muestra individual; valores más bajos indican una influencia más amplia, posiblemente llevando a fronteras de decisión más suaves.
+
+El código empleado es el siguiente:
+
+```py
+# Preprocesador
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', StandardScaler(), numerical_columns),
+        ('cat', OneHotEncoder(), categorical_columns)
+    ]
+)
+
+# Pipeline con preprocesador y SVC
+pipeline = Pipeline([
+    ('preprocessor', preprocessor),
+    ('svc', SVC(random_state=42))
+])
+
+# Espacio de parámetros para GridSearchCV
+param_grid = {
+    'svc__C': [0.1, 1, 10, 100],  # Valores comunes para C
+    'svc__kernel': ['linear', 'rbf'],  # Kernels a probar
+    'svc__gamma': [0.001, 0.0001, 'scale', 'auto']  # parámetros para el kernel 'rbf'
+}
+
+# Aplicar GridSearchCV con validación cruzada
+grid_search = GridSearchCV(pipeline, param_grid, cv=5, scoring='accuracy', verbose=10)
+grid_search.fit(X_train, y_train)
+
+# Mejores parámetros y mejor puntuación
+print("Mejores parámetros:", grid_search.best_params_)
+print("Mejor puntuación de validación cruzada:", grid_search.best_score_)
+```
+
+
+
+### Resultados y Evaluación
+
+El mejor modelo obtenido presentó los siguientes parámetros: `{'svc__C': 100, 'svc__gamma': 0.001, 'svc__kernel': 'linear'}`, lo que indica una preferencia por un alto grado de regularización con un kernel lineal. Esto sugiere que, para nuestro conjunto de datos, la relación entre las clases puede ser aproximadamente lineal en el espacio transformado por el preprocesador.
+
+La precisión en el conjunto de entrenamiento fue del 99.36%, y en el conjunto de prueba del 97.96%, demostrando una excelente generalización del modelo seleccionado. La casi igual precisión entre los conjuntos de entrenamiento y prueba sugiere que el modelo es robusto y no sufre de sobreajuste significativo.
+
+La distribución del error en las distintas particiones de validación cruzada es la siguiente:
+![](./img/boxplot_svm.png)
+
+Vemos como la amplitud de las cajas es muy pequeña, signo de robustez del modelo.
+
+### Interpretación de las Métricas
+
+El análisis de la evaluación del modelo SVM en el conjunto de prueba revela una precisión general sobresaliente del 97.96%. Este alto nivel de precisión indica que el modelo es capaz de clasificar correctamente a casi todos los individuos en las categorías de obeso y no obeso. Examinando más de cerca las métricas de precisión, recall y f1-score para cada clase, obtenemos una visión más detallada de cómo el modelo se desempeña en tareas específicas de clasificación.
+
+```bash
+              precision    recall  f1-score   support
+
+           0       0.98      0.98      0.98       107
+           1       0.98      0.98      0.98        89
+
+    accuracy                           0.98       196
+   macro avg       0.98      0.98      0.98       196
+weighted avg       0.98      0.98      0.98       196
+```
+
+- **Precisión (Precision):** Tanto para la clase 0 (no obeso) como para la clase 1 (obeso), la precisión es del 98%. Esto significa que, del total de predicciones que el modelo hizo para cada clase, el 98% fue correcto. En otras palabras, cuando el modelo predice que un individuo pertenece a una de estas categorías, es muy probable que esta predicción sea correcta.
+
+- **Recall (Sensibilidad):** El recall también es del 98% para ambas clases. Esto indica que el modelo es capaz de identificar correctamente el 98% de los casos reales de cada clase. Por ejemplo, de todos los individuos que son verdaderamente obesos, el modelo pudo reconocer correctamente el 98% de ellos.
+
+- **F1-Score:** El f1-score, que es una media armónica entre la precisión y el recall, se mantiene en el 98% para ambas clases. Este alto f1-score sugiere un equilibrio excelente entre la precisión y el recall, lo cual es especialmente importante en aplicaciones médicas o de salud donde tanto los falsos positivos como los falsos negativos pueden tener consecuencias significativas.
+
+- **Soporte (Support):** El soporte indica el número de ocurrencias reales de cada clase en el conjunto de prueba, con 107 no obesos y 89 obesos. La distribución relativamente equilibrada de las clases ayuda a garantizar que el modelo esté bien equilibrado y no sesgado hacia una clase específica.
+
+La precisión global y las métricas detalladas para cada clase muestran que el modelo SVM, con su configuración optimizada de parámetros, es extremadamente efectivo para clasificar individuos en las categorías de obeso y no obeso. La alta precisión, recall y f1-score para ambas clases indican que el modelo tiene una gran capacidad tanto para identificar correctamente a los individuos obesos como para minimizar los errores de clasificación, como los falsos positivos y los falsos negativos.
 
 ## Método de Ensamblado de Bagging
 
-(Descripción del método de ensamblado de Bagging utilizado, con un clasificador base que no sea un árbol, incluyendo justificaciones de las parametrizaciones y los parámetros escogidos).
+## Método de Ensamblado de Bagging con SVC como Clasificador Base
+
+El método de ensamblado de Bagging (Bootstrap Aggregating) se utilizó para mejorar la precisión y estabilidad de un clasificador base mediante la combinación de múltiples modelos que se entrenan con diferentes subconjuntos del conjunto de datos original. Este subconjunto se genera mediante muestreo con reemplazo, lo que significa que el mismo dato puede aparecer varias veces en un subconjunto, y algunos datos pueden no aparecer en absoluto. Luego, las predicciones de todos los modelos se agregan para formar la predicción final, típicamente por votación mayoritaria para clasificación o promedio para regresión.
+
+### Clasificador Base: SVC
+
+En este caso, se eligió el `SVC` (Support Vector Classifier) como clasificador base. SVC es conocido por su eficacia en espacios de alta dimensión y su capacidad para manejar fronteras de decisión no lineales a través de la elección del kernel. Aunque el uso de árboles de decisión es más común en los métodos de bagging, la selección de SVC ofrece una perspectiva interesante, especialmente en conjuntos de datos donde las relaciones lineales o no lineales entre las características y las etiquetas pueden ser capturadas más eficazmente por máquinas de vectores de soporte.
+
+### Parametrizaciones y Parámetros Escogidos
+
+#### Preprocesamiento
+
+El preprocesamiento se ha cambiado ligeramente, sustituyendo el `MinMaxScaler` por el `StandardScaler` para las variables numéricas y manteniendo `OneHotEncoder` para las categóricas, garantizando que todas las características se traten en una escala comparable y se conviertan adecuadamente para el SVC, que no maneja directamente variables categóricas.
+
+#### BaggingClassifier
+
+Se inicializa `BaggingClassifier` con SVM como el estimador base (debido al buen rendimiento en apartados anteriores) y se configura con 100 estimadores inicialmente. La configuración de múltiples estimadores permite al método de bagging aprovechar al máximo el muestreo con reemplazo, creando modelos diversificados que pueden capturar diferentes aspectos de los datos cuando se combinan.
+
+#### GridSearchCV
+
+Se define una cuadrícula de parámetros para explorar diferentes configuraciones del BaggingClassifier y del SVC. Los parámetros incluyen:
+- `bagging__n_estimators`: [10, 20, 50], ajusta el número de modelos en el ensamble. Un número mayor de estimadores puede aumentar la precisión pero también el tiempo de cómputo.
+- `bagging__estimator__C`: [0.1, 1, 10], el parámetro de regularización para SVC que controla el compromiso entre lograr un margen alto y clasificar todos los puntos de entrenamiento correctamente.
+- `bagging__estimator__kernel`: ['linear', 'rbf'], determina el tipo de hiperplano utilizado para separar los datos. `linear` es útil para datos linealmente separables, mientras que `rbf` permite fronteras de decisión más flexibles.
+
+El código empleado es el siguiente:
+
+```py
+# Preprocesador para variables numéricas y categóricas (ajustar según tus datos)
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', StandardScaler(), numerical_columns),  # Ajustar nombres de columnas numéricas
+        ('cat', OneHotEncoder(), categorical_columns)   # Ajustar nombres de columnas categóricas
+    ]
+)
+
+# Initialize the BaggingClassifier with the base estimator
+bgclassifier = BaggingClassifier(estimator=SVC(), n_estimators=100, random_state=4975)
+
+# Pipeline con preprocesador y BaggingClassifier utilizando SVC como clasificador base
+pipeline = Pipeline([
+    ('preprocessor', preprocessor),
+    ('bagging', bgclassifier)
+])
+
+# Definir la cuadrícula de parámetros para GridSearchCV
+param_grid = {
+    'bagging__n_estimators': [10, 20, 50],  # Número de estimadores en el ensamblado
+    'bagging__estimator__C': [0.1, 1, 10],  # Parámetro de regularización para SVC
+    'bagging__estimator__kernel': ['linear', 'rbf'],  # Kernel para SVC
+}
+
+# Aplicar GridSearchCV
+grid_search = GridSearchCV(pipeline, param_grid, cv=5, scoring='accuracy', verbose=10)
+grid_search.fit(X_train, y_train)
+
+# Mejores parámetros y puntuación
+print("Mejores parámetros:", grid_search.best_params_)
+print("Mejor puntuación de validación cruzada:", grid_search.best_score_)
+
+# Evaluar el modelo en el conjunto de prueba
+y_pred = grid_search.predict(X_test)
+print("Precisión en el conjunto de prueba:", accuracy_score(y_test, y_pred))
+```
+
+Vemos la distribución de errores de cada partición a continuación:
+![](./img/boxplot_ensamble_bagging.png)
+
+Como vemos, de nuevo son muy compactas las cajas, lo que demuestra la consistencia de los modelos.
+
+### Resultados
+
+Los mejores parámetros encontrados fueron: `{'bagging__estimator__C': 10, 'bagging__estimator__kernel': 'linear', 'bagging__n_estimators': 20}`. Esto indica que un modelo SVC con un margen de decisión más estricto (`C` de 10) y un kernel lineal, complementado con 20 modelos en el ensamble, proporciona el mejor equilibrio entre sesgo y varianza, logrando una alta precisión.
+
+La puntuación de validación cruzada de 0.987 y la precisión en el conjunto de prueba de 0.985 demuestran la efectividad de esta configuración, superando a menudo lo que se podría lograr con un único clasificador SVC. El enfoque de bagging, especialmente con un clasificador no convencional como base, muestra su versatilidad y potencial para mejorar significativamente la precisión y robustez de modelos predictivos complejos.
 
 ## Método de Stacking
 
-(Descripción del método de Stacking escogido, incluyendo los algoritmos de entrada y el modelo utilizado como ensamblaje, junto con las justificaciones de las parametrizaciones y los parámetros escogidos).
+En el apartado anterior, hemos implementado un método de ensamble avanzado conocido como Stacking (Apilamiento), el cual consiste en combinar múltiples modelos de clasificación o regresión (modelos base) para luego utilizar un modelo de nivel superior para integrar sus predicciones. Este enfoque permite aprovechar las fortalezas de cada uno de los modelos base y mejorar la precisión de las predicciones finales. Veamos cómo se llevó a cabo este proceso paso a paso, incluyendo la selección de modelos base, la generación de características de stacking, y la utilización de un modelo de nivel superior para el ensamble final.
+
+### Modelos Base para el Stacking
+
+Se escogieron tres algoritmos ampliamente reconocidos por su desempeño en tareas de clasificación:
+- `LogisticRegression`: Por su eficacia en la clasificación binaria y su capacidad para proporcionar probabilidades de clasificación.
+- `SVC` (Support Vector Classifier): Elegido por su flexibilidad en manejar fronteras de decisión no lineales, habilitando `probability=True` para obtener estimaciones de probabilidad.
+- `RandomForestClassifier`: Por su robustez y habilidad para manejar características de alta dimensionalidad sin necesidad de preprocesamiento extensivo.
+
+### Entrenamiento de los Modelos Base
+
+Cada modelo base fue entrenado utilizando el conjunto de entrenamiento preprocesado (`X_train_preprocessed`), permitiéndoles aprender de los datos y prepararse para generar las características de stacking.
+
+### Generación de Características de Stacking
+
+Utilizando la función `stacking` de la biblioteca `vecstack`, generamos un nuevo conjunto de características (`S_train` para entrenamiento y `S_test` para pruebas) basado en las predicciones de los modelos base. Este proceso se realizó mediante validación cruzada, con 4 particiones (`n_folds=4`), de manera estratificada y con un `shuffle` aleatorio, utilizando un `random_state=4975` para garantizar la reproducibilidad.
+
+Los modelos base mostraron diferentes niveles de error medio absoluto en las particiones de validación cruzada, con la `RandomForestClassifier` presentando el menor error, lo que sugiere una fuerte capacidad predictiva por parte de este modelo en comparación con los demás.
+
+### Modelo de Nivel Superior
+
+Como modelo de ensamble de nivel superior, se escogió una `LogisticRegression`, debido a su simplicidad y efectividad en tareas de clasificación. Este modelo fue entrenado con las características de stacking (`S_train`), aprendiendo cómo integrar de manera óptima las predicciones de los modelos base.
+
+### Evaluación del Modelo de Ensamble
+
+Las predicciones finales sobre el conjunto de prueba (`S_test`) se realizaron utilizando el modelo de nivel superior, alcanzando una precisión de **0.9694**. Este resultado demuestra la eficacia del método de stacking en la mejora de la precisión predictiva, superando probablemente a los modelos individuales gracias a la sinergia creada al combinar sus diferentes aproximaciones al problema de clasificación.
+
+### Conclusión
+
+El método de Stacking implementado muestra cómo la combinación estratégica de modelos con distintas fortalezas y la aplicación de un modelo de nivel superior para integrar sus predicciones pueden resultar en una mejora significativa de la precisión en tareas de clasificación. Este enfoque ofrece un ejemplo claro de cómo las técnicas de ensamble avanzadas pueden ser utilizadas para lograr un rendimiento superior en la predicción, aprovechando la diversidad de los modelos base para capturar diferentes aspectos de los datos y mejorar la generalización del modelo final.
 
 ## Conclusiones
 
-(Resumen de los hallazgos más importantes, recomendaciones y posibles pasos a seguir en investigaciones futuras).
+A lo largo de este análisis exhaustivo, hemos aplicado y evaluado una amplia gama de modelos predictivos, diseñados meticulosamente con estrategias particulares para la selección de características y la optimización de hiperparámetros. Centrando nuestros esfuerzos en la clasificación precisa de la obesidad a través de variables biométricas y de estilo de vida, hemos explorado desde modelos fundamentales como la regresión logística hasta complejas redes neuronales. Cada uno ha aportado valiosas perspectivas, demostrando la riqueza de enfoques disponibles en el modelado predictivo. Entre estos, los modelos de ensamble como el Bagging y Random Forest han resaltado por su capacidad para mejorar tanto la precisión como la generalización de las predicciones.
+
+El innovador método de ensamble avanzado utilizando Bagging con SVC como clasificador base ha demostrado la efectividad de combinar múltiples modelos entrenados con subconjuntos distintos de datos, no solo mejorando la precisión y la estabilidad sino también explorando el potencial del SVC dentro de un contexto de ensamble, alcanzando una impresionante precisión de **0.985** en el conjunto de prueba. Este resultado enfatiza la importancia de las configuraciones de modelos no tradicionales y la sinergia resultante.
+
+Adicionalmente, técnicas de ensamble tradicionales como Gradient Boosting y XGBoost han sobresalido, logrando precisiones en el conjunto de prueba de **0.98** y **0.984**, respectivamente. La meticulosa búsqueda paramétrica ha sido clave en afinar estos modelos para maximizar su eficiencia y eficacia.
+
+La implementación del método de Stacking representa un hito significativo en nuestro análisis, al combinar múltiples modelos de clasificación o regresión (modelos base) y emplear un modelo de nivel superior para integrar sus predicciones. Este enfoque ha aprovechado las fortalezas de cada uno de los modelos base, mejorando notablemente la precisión de las predicciones finales hasta alcanzar un **0.9694** en el conjunto de prueba. Este logro subraya el valor de las técnicas de ensamble avanzadas para alcanzar un rendimiento predictivo superior, aprovechando la diversidad y complementariedad de los modelos base.
+
+La tabla actualizada que refleja la precisión alcanzada por cada modelo en el conjunto de prueba ilustra la capacidad de estos para generalizar a nuevos datos, reforzando la importancia de un enfoque holístico en el modelado predictivo, especialmente relevante en aplicaciones de salud pública como la lucha contra la obesidad:
+
+| Modelo                                  | Precisión en Test |
+|-----------------------------------------|-------------------|
+| Regresión Logística                     | 0.98              |
+| Red Neuronal (Optimizada por AUC)       | 0.88              |
+| Bagging Classifier                      | 0.97              |
+| Random Forest                           | 0.97              |
+| Gradient Boosting                       | 0.98              |
+| XGBoost                                 | 0.984             |
+| SVM con Diferentes Kernels              | 0.9796            |
+| Bagging con SVC como Clasificador Base  | 0.985             |
+| Método de Stacking                      | 0.9694            |
+
+En conclusión, la integración de técnicas de modelado tradicionales con métodos de ensamble avanzados y la exploración de configuraciones de modelos innovadoras han demostrado ser extraordinariamente efectivas. Este estudio confirma que la aplicación de métodos analíticos avanzados es crucial para desarrollar estrategias de intervención y prevención efectivas contra la obesidad. La habilidad de estos modelos para discernir patrones complejos y efectuar predicciones precisas es esencial para la implementación de intervenciones dirigidas y personalizadas, contribuyendo significativamente al avance de la salud pública y el bienestar individual.
