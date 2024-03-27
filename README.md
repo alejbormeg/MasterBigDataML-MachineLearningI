@@ -40,8 +40,6 @@ Este análisis nos permitirá no solo identificar el mejor modelo para clasifica
 
 ## Análisis Exploratorio y Limpieza de Datos
 
-(Descripción del análisis exploratorio de los datos, incluyendo estadísticas descriptivas, visualizaciones para comprender la distribución de los datos y la identificación de valores atípicos o faltantes. Detalle del proceso de limpieza de datos, incluyendo la imputación de valores faltantes, la eliminación de valores atípicos y cualquier transformación de variables realizada).
-
 Los datos que usaremos se encuentran en el fichero *src\data\datos_practica_miss.csv*. Para leerlos usaremos la librería *pandas* de Python para cargarlos como un dataframe, tras esto usaremos la semilla *4579* (últimos dígitos de mi DNI) para tomar una muestra aleatoria de 1000 filas y realizamos una primera exploración de los datos con la función *info*:
 
 ```py
@@ -79,44 +77,41 @@ dtypes: float64(8), int64(1), object(9)
 ```
 Dentro del contexto del estudio sobre obesidad, cada variable recogida en los datos juega un papel importante en el análisis. A continuación, se explica el significado de cada una de estas variables:
 
-1. Gender: Esta variable es de tipo objeto y representa el género del individuo, con 983 valores no nulos registrados. Los géneros típicamente se clasifican como masculino o femenino, pero el diseño del estudio podría incluir otras categorías según cómo se recolectaron los datos.
+1. **Gender**: Esta variable es de tipo objeto y representa el género del individuo, con 983 valores no nulos registrados. Los géneros típicamente se clasifican como masculino o femenino, pero el diseño del estudio podría incluir otras categorías según cómo se recolectaron los datos.
 
-2. Age: Representa la edad de los individuos, con 977 valores no nulos. Se registra como un número de punto flotante, lo que permite incluir edades exactas hasta cierto nivel decimal (aunque usualmente la edad se maneja en números enteros).
+2. **Age**: Representa la edad de los individuos, con 977 valores no nulos. Se registra como un número de punto flotante, lo que permite incluir edades exactas hasta cierto nivel decimal (aunque usualmente la edad se maneja en números enteros).
 
-3. Height: La altura de los individuos, registrada para 975 sujetos como un número de punto flotante. Esta medida es crucial para evaluar el Índice de Masa Corporal (IMC) junto con el peso.
+3. **Height**: La altura de los individuos, registrada para 975 sujetos como un número de punto flotante. Esta medida es crucial para evaluar el Índice de Masa Corporal (IMC) junto con el peso.
 
-4. Weight: El peso de los individuos, disponible para 977 sujetos, también como un número de punto flotante. Es uno de los factores clave para determinar el estado nutricional y el riesgo de obesidad.
+4. **Weight**: El peso de los individuos, disponible para 977 sujetos, también como un número de punto flotante. Es uno de los factores clave para determinar el estado nutricional y el riesgo de obesidad.
 
-5- family_history_with_overweight: Indica si el individuo tiene antecedentes familiares de sobrepeso, con 976 respuestas. Es una variable de tipo objeto, probablemente con respuestas como "sí" o "no", que ayuda a entender la predisposición genética o ambiental hacia la obesidad.
+5. **family_history_with_overweight**: Indica si el individuo tiene antecedentes familiares de sobrepeso, con 976 respuestas. Es una variable de tipo objeto, probablemente con respuestas como "sí" o "no", que ayuda a entender la predisposición genética o ambiental hacia la obesidad.
 
-6. FAVC: "Frecuencia de Consumo de Alimentos Altos en Calorías" (High-Calorie Food Consumption Frequency), registrada para 975 individuos como objeto, indica si el individuo consume frecuentemente alimentos altos en calorías, un factor importante en el riesgo de obesidad.
+6. **FAVC**: "Frecuencia de Consumo de Alimentos Altos en Calorías" (High-Calorie Food Consumption Frequency), registrada para 975 individuos como objeto, indica si el individuo consume frecuentemente alimentos altos en calorías, un factor importante en el riesgo de obesidad.
 
-7. FCVC: "Frecuencia de Consumo de Verduras", con 977 valores no nulos, mide la regularidad con la que el individuo consume verduras, contribuyendo a evaluar la calidad de la dieta.
+7. **FCVC**: "Frecuencia de Consumo de Verduras", con 977 valores no nulos, mide la regularidad con la que el individuo consume verduras, contribuyendo a evaluar la calidad de la dieta.
 
-8. NCP: "Número de Comidas Principales", con datos para 973 individuos, registra cuántas comidas principales hace la persona al día, importante para entender los patrones alimenticios.
+8. **NCP**: "Número de Comidas Principales", con datos para 973 individuos, registra cuántas comidas principales hace la persona al día, importante para entender los patrones alimenticios.
 
-9. CAEC: "Consumo de Alimentos Entre Comidas", con 975 valores no nulos, indica la frecuencia con la que la persona consume snacks o alimentos fuera de las comidas principales, lo cual puede afectar el balance calórico total.
+9. **CAEC**: "Consumo de Alimentos Entre Comidas", con 975 valores no nulos, indica la frecuencia con la que la persona consume snacks o alimentos fuera de las comidas principales, lo cual puede afectar el balance calórico total.
 
-10. SMOKE: Indica si el individuo fuma, con datos para 984 personas. Fumar puede influir en el metabolismo y en el apetito, afectando indirectamente el peso.
+10. **SMOKE**: Indica si el individuo fuma, con datos para 984 personas. Fumar puede influir en el metabolismo y en el apetito, afectando indirectamente el peso.
 
-11. CH2O: La cantidad de agua consumida diariamente, registrada para 980 sujetos. Una adecuada hidratación puede influir en la digestión, el metabolismo y la sensación de saciedad.
+11. **CH2O**: La cantidad de agua consumida diariamente, registrada para 980 sujetos. Una adecuada hidratación puede influir en la digestión, el metabolismo y la sensación de saciedad.
 
-12. SCC: "Monitoreo de Calorías Consumidas", con 981 valores, indica si el individuo lleva un control sobre las calorías que consume, lo cual puede ser indicativo de una mayor conciencia y gestión del peso.
+12. **SCC**: "Monitoreo de Calorías Consumidas", con 981 valores, indica si el individuo lleva un control sobre las calorías que consume, lo cual puede ser indicativo de una mayor conciencia y gestión del peso.
 
-13. FAF: "Frecuencia de Actividad Física", registrada para 973 individuos, refleja cuán a menudo la persona realiza ejercicio, crucial para el manejo del peso y la salud general.
+13. **FAF**: "Frecuencia de Actividad Física", registrada para 973 individuos, refleja cuán a menudo la persona realiza ejercicio, crucial para el manejo del peso y la salud general.
 
-14. TUE: "Tiempo Usado en Dispositivos Electrónicos", con datos para 981 individuos, puede indicar niveles de sedentarismo, afectando el balance energético y el riesgo de obesidad.
+14. **TUE**: "Tiempo Usado en Dispositivos Electrónicos", con datos para 981 individuos, puede indicar niveles de sedentarismo, afectando el balance energético y el riesgo de obesidad.
 
-15. CALC: "Consumo de Alcohol", con 981 respuestas, refleja la frecuencia con la que el individuo consume bebidas alcohólicas, las cuales pueden contribuir a un exceso de calorías.
+15. **CALC**: "Consumo de Alcohol", con 981 respuestas, refleja la frecuencia con la que el individuo consume bebidas alcohólicas, las cuales pueden contribuir a un exceso de calorías.
 
-16. MTRANS: "Medio de Transporte", registrado para 980 individuos, indica el método principal de movilidad del individuo (por ejemplo, caminar, transporte público, automóvil), lo que puede influir en el nivel de actividad física diaria.
+16. **MTRANS**: "Medio de Transporte", registrado para 980 individuos, indica el método principal de movilidad del individuo (por ejemplo, caminar, transporte público, automóvil), lo que puede influir en el nivel de actividad física diaria.
 
 Cada una de estas variables ofrece una vista comprensiva sobre diferentes aspectos que pueden influir en el peso y la salud de una persona, permitiendo un análisis detallado sobre los factores de riesgo y las potenciales intervenciones para prevenir o manejar la obesidad.
 
 A simple vista destaca la presencia de valores perdidos en la mayoría de columnas a excepción de la columna "Unnamed: 0", que eliminaremos por no conocer la relación de dicha columna con el problema.
-
-Para conocer el significado de las siguientes categorías se ha realizado una búsqueda por internet llegando a las siguientes conclusiones:
-
 
 
 ### Valores atípicos
@@ -126,7 +121,7 @@ Realizamos un *Boxplot* por cada columna numérica:
 
 ![Numericas](./img/boxplot_numericas.png)
 
-Vemos como hay valores atípicos en la columna de la edad (los cuales no podemos considerar como valores perdidos, pues debe de tratarse de la edad real de ciertas personas encuestadas, que en su mayoría son jóvenes de entre 20 y 27 años). Lo mismo haremos con los datos atípicos de las columnas de la altura, peso y NCP pues se tratan de valores dentro de la normalidad, aunque atípicos en este caso.
+Vemos como hay valores atípicos en la columna de la edad (los cuales no podemos considerar como valores perdidos, pues debe de tratarse de la edad real de ciertas personas encuestadas, que en su mayoría son jóvenes de entre 20 y 27 años). Lo mismo haremos con los datos atípicos de las columnas de la altura, peso y NCP pues se tratan de valores dentro de la normalidad, aunque atípicos para esta mustra.
 
 
 ### Valores perdidos
@@ -165,7 +160,7 @@ Vamos a visualizar estos datos perdidos con ayuda de la librería *missingno* de
 
 ![Missingno](./img/missingno.png)
 
-En primer lugar eliminamos los valores perdidos de la variable objetivo "NObeyesdad". Pues no tiene sentido imputarlos.
+En primer lugar eliminamos los valores perdidos de la variable objetivo "NObeyesdad". Pues no tiene sentido imputarlos, al tratarse de la variable objetivo.
 
 La distribución de valores eprdidos es muy aleatoria dentro de cada columna, por ello optamos por imputar los valores perdidos, sustituyendo las variables numéricas por la media o mediana (dependiente de si son o no simétricas) y las categóricas por la moda. Eliminamos también la primera columna por ser irrelevante para el estudio:
 
@@ -256,6 +251,8 @@ plt.show()
 ![](./img/correlation_matrix.png)
 
 
+Como vemos hay variables fuertemente correlacionadas con la variable objetivo como es el caso de *Weight* pero ninguna pareja de variables input está suficientemente correlacionada como para considerar eliminarlas. Por lo que suaremos todas las variables input numéricas.
+
 ## Mejor Modelo de Regresión Logística
 
 Utilizando la librería `sklearn`, implementamos un modelo de Regresión Logística optimizado con un exhaustivo proceso de selección de hiperparámetros a través de `GridSearchCV`. Este modelo es ideal para problemas de clasificación binaria, donde nuestro objetivo es determinar la presencia o ausencia de obesidad en individuos.
@@ -267,6 +264,8 @@ El paso crítico antes del entrenamiento fue el preprocesamiento de datos, esenc
 - **Variables Numéricas**: Escaladas con `MinMaxScaler` para normalizar cada característica en el rango [0, 1], facilitando el proceso de aprendizaje y optimización.
   
 - **Variables Categóricas**: Convertidas a formato numérico mediante `OneHotEncoder`, permitiendo que los modelos matemáticos procesen eficientemente etiquetas categóricas.
+
+Este preprocesamiento se empleará en la mayoría de modelos de este trabajo, no solo en este caso.
 
 ### Definición del Modelo y Selección de Características:
 
@@ -287,7 +286,13 @@ sfs = SFS(estimator=logistic_regression,
 # Entrenamos el modelo con los datos preprocesados
 sfs.fit(X_train_preprocessed, y_train)
 ```
-Con este método realizamos la selección de variables para el entrenamiento del modelo.
+Con este método realizamos la selección de variables para el entrenamiento del modelo. Las variables input escogidas fueron:
+
+```
+Features selected by stepwise algorithm: ['num__Height', 'num__Weight', 'num__FCVC', 'num__CH2O', 'cat__Gender_Female', 'cat__Gender_Male', 'cat__family_history_with_overweight_no', 'cat__FAVC_no', 'cat__FAVC_yes', 'cat__CAEC_no', 'cat__SMOKE_no', 'cat__MTRANS_Bike', 'cat__MTRANS_Motorbike', 'cat__MTRANS_Public_Transportation']
+```
+
+La *Weight* y *Height* son las que determinan si una persona está obesa o no normalmente, por lo que es lógico que aparezcan las primeras. Cabe destacar la presencia de otras variables como el consumo de agua, el género, o el medio de transporte.
 
 ### Búsqueda en Malla para Optimización de Hiperparámetros:
 
@@ -340,11 +345,13 @@ Los parámetros óptimos obtenidos fueron `{'C': 1, 'class_weight': None, 'max_i
 La matriz de confusión obtenida es la siguiente:
 ![](./img/confusion_matrix_logistic_reg.png)
 
+Destaca el bajo número de falsos positivos y negativos.
+
 ### Mejor Red Neuronal Basada en Regresión Logística
 
 Para construir la mejor red neuronal basada en las características seleccionadas por el modelo de regresión logística, utilizamos un enfoque sistemático para explorar una variedad de configuraciones de red neuronal. Este proceso se llevó a cabo mediante la implementación de *MLPClassifier* de Scikit-learn, junto con *GridSearchCV* para una búsqueda exhaustiva de hiperparámetros óptimos, garantizando así la selección de la configuración más adecuada para nuestro conjunto de datos.
 
-La elección de características se basó en las seleccionadas por SequentialFeatureSelector, que identificó las variables más relevantes de acuerdo con su impacto en la precisión de la regresión logística. Estas características se utilizaron como entrada para entrenar la red neuronal, asegurando que el modelo se centrara solo en los predictores más significativos.
+La elección de características se basó en las seleccionadas por SequentialFeatureSelector en el paso anterior, que identificó las variables más relevantes de acuerdo con su impacto en la precisión de la regresión logística siguiendo el algoritmo *Stepwise*. Estas características se utilizaron como entrada para entrenar la red neuronal, asegurando que el modelo se centrara solo en los predictores más significativos.
 
 El param_grid_nn definido para GridSearchCV incluyó una gama de opciones para la arquitectura de la red y sus parámetros:
 
@@ -375,6 +382,8 @@ Este enfoque metodológico y la selección cuidadosa de hiperparámetros han per
 La matriz de confusión obtenida es la siguiente:
 
 ![](./img/confusion_matrix_cnn_1.png)
+
+Presenta un ligero aumento en los falsos negativos con respecto al algoritmo anterior, pero sigue siendo muy buen clasificador.
 
 ## Selección de Variables (Select K=4 Best) y Mejor Red Neuronal en Términos de AUC
 
@@ -468,11 +477,11 @@ Teniendo en cuenta los resultados revisados, reafirmamos que el modelo del Apart
 
 ## Mejor Búsqueda Paramétrica para Árboles de Decisión
 
-Para lograr la mejor búsqueda paramétrica y encontrar el árbol de decisión óptimo, se implementaron cuatro métodos de validación de la bondad de la clasificación: precisión (accuracy), sensibilidad (recall), puntaje F1 (f1_score) y el área bajo la curva ROC (AUC). Utilizamos GridSearchCV para explorar exhaustivamente un conjunto predefinido de parámetros del DecisionTreeClassifier, evaluando cada combinación de parámetros con respecto a las cuatro métricas mencionadas.
+A contiunación, abordamos este mismo problema empleando *Árboles*. Para lograr la mejor búsqueda paramétrica y encontrar el árbol de decisión óptimo, se implementaron cuatro métodos de validación de la bondad de la clasificación: precisión (accuracy), sensibilidad (recall), puntaje F1 (f1_score) y el área bajo la curva ROC (AUC). Utilizamos GridSearchCV para explorar exhaustivamente un conjunto predefinido de parámetros del DecisionTreeClassifier, evaluando cada combinación de parámetros con respecto a las cuatro métricas mencionadas.
 
 ### Proceso de Búsqueda Paramétrica
 
-Se definió un espacio de búsqueda de parámetros para el DecisionTreeClassifier, considerando el criterio de división (gini o entropy), la profundidad máxima del árbol (max_depth), el mínimo número de muestras requerido para dividir un nodo interno (min_samples_split) y el mínimo número de muestras requeridas para estar en un nodo hoja (min_samples_leaf). La configuración de GridSearchCV incluyó estos parámetros y utilizó la validación cruzada de 5-folds para asegurar una evaluación robusta de cada modelo. Usamos el siguiente código para ello:
+Se definió un espacio de búsqueda de parámetros para el *DecisionTreeClassifier* de *Sklearn*, considerando el criterio de división (gini o entropy), la profundidad máxima del árbol (max_depth), el mínimo número de muestras requerido para dividir un nodo interno (min_samples_split) y el mínimo número de muestras requeridas para estar en un nodo hoja (min_samples_leaf). La configuración de GridSearchCV incluyó estos parámetros y utilizó la validación cruzada de 5-folds para asegurar una evaluación robusta de cada modelo. Usamos el siguiente código para ello:
 
 ```py
 # Definimos el modelo base
@@ -512,7 +521,7 @@ print("Puntuaciones para todas las métricas:", grid_search.cv_results_)
 
 ### Métricas de Evaluación
 
-Se emplearon cuatro métricas de evaluación personalizadas: precisión, sensibilidad, puntaje F1 y AUC. Estas métricas proporcionan una visión comprensiva del rendimiento del modelo, evaluando no solo la exactitud de las clasificaciones (precisión), sino también cómo el modelo identifica correctamente las clases positivas (sensibilidad), la balanza entre precisión y sensibilidad (puntaje F1) y su capacidad para distinguir entre clases (AUC). Usamoes el siguiente código:
+Se emplearon cuatro métricas de evaluación personalizadas: precisión, sensibilidad, F1 y AUC. Estas métricas proporcionan una visión comprensiva del rendimiento del modelo, evaluando no solo la exactitud de las clasificaciones (precisión), sino también cómo el modelo identifica correctamente las clases positivas (sensibilidad), la balanza entre precisión y sensibilidad (F1) y su capacidad para distinguir entre clases (AUC). Usamos el siguiente código:
 
 ```py
 # Reentrenamos el mejor modelo sobre todo el conjunto de datos
@@ -546,11 +555,13 @@ print(classification_report(y_test, y_pred))
 
 ### Resultados
 
-El proceso de búsqueda identificó que el mejor modelo se logra utilizando el criterio entropy, sin limitar la profundidad máxima (max_depth=None), con un mínimo de 4 muestras por hoja (min_samples_leaf=4) y requiriendo al menos 2 muestras para dividir un nodo (min_samples_split=2). Este modelo alcanzó la mejor puntuación según la precisión con un valor de 0.9757880124122164.
-Evaluación del Mejor Modelo
+El proceso de búsqueda identificó que el mejor modelo se logra utilizando el criterio entropy, sin limitar la profundidad máxima (max_depth=None), con un mínimo de 4 muestras por hoja (min_samples_leaf=4) y requiriendo al menos 2 muestras para dividir un nodo (min_samples_split=2). Este modelo alcanzó la mejor puntuación según la precisión con un valor de 0.976.
 
-El modelo óptimo fue evaluado en un conjunto de prueba independiente, revelando una precisión de 0.9744897959183674, un recall macro de 0.9738002730232069, un puntaje F1 macro de 0.974247799237945, y un AUC de 0.9776330988133992. Estos resultados demuestran que el modelo no solo es preciso en general, sino que también mantiene un equilibrio adecuado entre la sensibilidad y la especificidad para las clases involucradas, además de poseer una excelente capacidad de discriminación entre clases.
-Conclusión
+### Evaluación del Mejor Modelo
+
+El modelo óptimo fue evaluado en un conjunto de prueba independiente, revelando una precisión de 0.974, un recall de 0.974, un F1 de 0.974, y un AUC de 0.978. Estos resultados demuestran que el modelo no solo es preciso en general, sino que también mantiene un equilibrio adecuado entre la sensibilidad y la especificidad para las clases involucradas, además de poseer una excelente capacidad de discriminación entre clases.
+
+### Conclusión
 
 La búsqueda paramétrica detallada utilizando GridSearchCV y la evaluación basada en múltiples métricas permitieron identificar un árbol de decisión altamente efectivo. Este modelo equilibra bien entre evitar el sobreajuste y mantener una alta capacidad de generalización, destacándose por su precisión, sensibilidad, puntaje F1 y AUC en la clasificación. La implementación meticulosa y la evaluación rigurosa aseguran que el modelo seleccionado es adecuado para aplicaciones prácticas, proporcionando decisiones de clasificación confiables y valiosas para la toma de decisiones basada en datos.
 
@@ -654,9 +665,9 @@ Para ambos modelos, el preprocesamiento explicado en el primer apartado es váli
 
 Para el modelo de Bagging, se eligió un clasificador de ensamble basado en árboles de decisión como estimador base. Se realizó una búsqueda de parámetros utilizando GridSearchCV, con un enfoque en tres parámetros clave:
 
-    n_estimators: Número de árboles en el ensamble.
-    max_samples: Fracción del número total de muestras utilizadas para ajustar cada árbol base.
-    max_features: Fracción del número total de características consideradas para dividir cada nodo.
+* **n_estimators**: Número de árboles en el ensamble.
+* **max_samples**: Fracción del número total de muestras utilizadas para ajustar cada árbol base.
+* **max_features**: Fracción del número total de características consideradas para dividir cada nodo.
 
 El siguiente fragmento de código muestra la implementación de la búsqueda de parámetros:
 
