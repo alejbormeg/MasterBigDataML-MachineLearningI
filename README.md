@@ -800,13 +800,13 @@ print(f'Mejores parámetros: {grid_search.best_params_}')
 
 Los parámetros considerados en la búsqueda fueron:
 
-    n_estimators: Número de árboles secuenciales a construir. Más árboles pueden mejorar la precisión pero también incrementar el riesgo de sobreajuste.
-    learning_rate: Tasa de aprendizaje que controla el grado en que cada árbol influye en el modelo final. Una tasa más baja requiere más árboles, pero puede mejorar la generalización.
-    max_depth: Profundidad máxima de cada árbol. Limitar la profundidad ayuda a prevenir el sobreajuste.
-    min_samples_split: Número mínimo de observaciones necesarias para dividir un nodo interno.
-    min_samples_leaf: Número mínimo de observaciones requeridas para ser un nodo hoja.
-    max_features: Número máximo de características a considerar para la mejor división.
-    subsample: Fracción de muestras a utilizar para ajustar cada árbol, lo que permite un aprendizaje estocástico.
+* **n_estimators**: Número de árboles secuenciales a construir. Más árboles pueden mejorar la precisión pero también incrementar el riesgo de sobreajuste.
+* **learning_rate**: Tasa de aprendizaje que controla el grado en que cada árbol influye en el modelo final. Una tasa más baja requiere más árboles, pero puede mejorar la generalización.
+* **max_depth**: Profundidad máxima de cada árbol. Limitar la profundidad ayuda a prevenir el sobreajuste.
+* **min_samples_split**: Número mínimo de observaciones necesarias para dividir un nodo interno.
+* **min_samples_leaf**: Número mínimo de observaciones requeridas para ser un nodo hoja.
+* **max_features**: Número máximo de características a considerar para la mejor división.
+* **subsample**: Fracción de muestras a utilizar para ajustar cada árbol, lo que permite un aprendizaje estocástico.
 
 La configuración de GridSearchCV permitió evaluar combinaciones de estos parámetros para identificar la configuración óptima según la precisión.
 
@@ -843,7 +843,7 @@ Precisión en el conjunto de prueba: 0.9795918367346939
 weighted avg       0.98      0.98      0.98       196
 ```
 
-Este rendimiento demuestra la efectividad del modelo de Gradient Boosting en la tarea de clasificación, resaltando la importancia de la configuración adecuada de los hiperparámetros para lograr un alto rendimiento. La capacidad del modelo para generalizar bien a nuevos datos lo convierte en una herramienta valiosa en el campo de la salud pública.
+Este rendimiento demuestra la efectividad del modelo de Gradient Boosting en la tarea de clasificación, resaltando la importancia de la configuración adecuada de los hiperparámetros para lograr un alto rendimiento en el problema de clasificación binaria que consideramos.
 
 ### Mejor Búsqueda Paramétrica para XGBoost según Accuracy
 
@@ -875,10 +875,10 @@ print(f'Mejores parámetros: {grid_search.best_params_}')
 ```
 Los parámetros explorados incluyeron:
 
-    n_estimators: Define el número de ciclos de boosting, esencialmente cuántos árboles secuenciales se construyen.
-    learning_rate: Controla el impacto de cada árbol en el resultado final, un balance entre rendimiento y riesgo de sobreajuste.
-    max_depth: La profundidad máxima de los árboles, que ayuda a controlar la complejidad y el sobreajuste.
-    colsample_bytree: La fracción de columnas (características) usadas para cada árbol, una forma de realizar muestreo de características.
+* **n_estimators**: Define el número de ciclos de boosting, esencialmente cuántos árboles secuenciales se construyen.
+* **learning_rate**: Controla el impacto de cada árbol en el resultado final, un balance entre rendimiento y riesgo de sobreajuste.
+* **max_depth**: La profundidad máxima de los árboles, que ayuda a controlar la complejidad y el sobreajuste.
+* **colsample_bytree**: La fracción de columnas (características) usadas para cada árbol, una forma de realizar muestreo de características.
 
 Los mejores parámetros encontrados para el modelo de XGBoost y la evaluación de rendimiento son los siguientes:
 
@@ -961,8 +961,6 @@ grid_search.fit(X_train, y_train)
 print("Mejores parámetros:", grid_search.best_params_)
 print("Mejor puntuación de validación cruzada:", grid_search.best_score_)
 ```
-
-
 
 ### Resultados y Evaluación
 
